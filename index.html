@@ -88,11 +88,11 @@
     changeBackground(selectElement);
     updateMessage(selectElement);
   }
+
   function changeBackground(selectElement) {
     const url = selectElement.options[selectElement.selectedIndex].dataset.posterUrl;
     document.body.style.backgroundImage = `url('${url}')`;
   }
-
 
   function updateMessage(selectElement) {
     const messageDiv = document.getElementById('message');
@@ -126,7 +126,7 @@
   }
 
   function loadAppropriateStylesheet() {
-    fetch('https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec?action=getCssContent', {
+    fetch('https://ancient-journey-71811-3440b372ab80.herokuapp.com/proxy?action=getCssContent', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -149,7 +149,7 @@
   }
 
   function loadTournaments() {
-    fetch('https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec?action=getActiveTournaments', {
+    fetch('https://ancient-journey-71811-3440b372ab80.herokuapp.com/proxy?action=getActiveTournaments', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -189,7 +189,7 @@
     var loadingOverlay = document.getElementById('loadingOverlay');
     loadingOverlay.style.display = 'flex'; // Show the overlay
 
-    fetch('https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec', {
+    fetch('https://ancient-journey-71811-3440b372ab80.herokuapp.com/proxy', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
