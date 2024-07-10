@@ -88,6 +88,11 @@
     changeBackground(selectElement);
     updateMessage(selectElement);
   }
+  function changeBackground(selectElement) {
+    const url = selectElement.options[selectElement.selectedIndex].dataset.posterUrl;
+    document.body.style.backgroundImage = `url('${url}')`;
+  }
+
 
   function updateMessage(selectElement) {
     const messageDiv = document.getElementById('message');
@@ -226,4 +231,23 @@
       popup.style.left = '50%';
       popup.style.top = '50%';
       popup.style.transform = 'translate(-50%, -50%)';
-      popup.style.zIndex
+      popup.style.zIndex = '1000'; // Ensure it's above other content
+
+      document.body.appendChild(popup);
+    })
+    .catch(error => {
+      console.error("Error processing registration: " + error);
+      loadingOverlay.style.display = 'none'; // Optionally, hide overlay on error
+    });
+  });
+
+  function initialize() {
+    document.getElementById('loadingOverlay').style.display = 'flex'; // Show the overlay
+    loadAppropriateStylesheet();
+    loadTournaments();
+  }
+
+  window.onload = initialize;
+</script>
+</body>
+</html>
