@@ -232,8 +232,31 @@
       popup.style.top = '50%';
       popup.style.transform = 'translate(-50%, -50%)';
       popup.style.zIndex = '1000'; // Ensure it's above other content
-
+      
+      // Add responsive styles
+      const style = document.createElement('style');
+      style.innerHTML = `
+        #confirmationPopup div {
+          max-width: 90%;
+          padding: 10px;
+        }
+        @media (min-width: 768px) {
+          #confirmationPopup div {
+            max-width: 60%;
+            padding: 20px;
+          }
+        }
+        @media (min-width: 1024px) {
+          #confirmationPopup div {
+            max-width: 40%;
+            padding: 20px;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      
       document.body.appendChild(popup);
+
     })
     .catch(error => {
       console.error("Error processing registration: " + error);
