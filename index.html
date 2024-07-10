@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Registration</title>
+    <style>
+        /* Initial loading screen styles */
+        body, html {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20% 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            font-size: 1.5rem;
+        }
+
+        /* Styles to overwrite initial loading screen styles */
+        .loaded body, .loaded html {
+            background-color: inherit;
+            color: inherit;
+            font-family: inherit;
+            margin: inherit;
+            padding: inherit;
+            height: inherit;
+            display: inherit;
+            align-items: inherit;
+            justify-content: inherit;
+        }
+
+        .loaded .loading-screen {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="loading-screen" id="initialLoadingScreen">
+    Please wait...
+</div>
+
+<div class="container" style="display:none;">
+    <h2>Tournament Registration Form</h2>
+    <form id="registrationForm">
+        <div class="form-group">
+            <label for="nameInput">Name</label>
+            <input type="text" id="nameInput" placeholder="Enter name" required>
+        </div>
+        <div class="form-group">
+            <label for="emailInput">Email address</label>
+            <input type="email" id="emailInput" placeholder="Enter email" required>
+        </div>
+        <div class="form-group">
+            <label for="tournamentSelect">Select Tournament</label>
+            <select id="tournamentSelect" required onchange="handleTournamentChange(this)">
+            </select>
+        </div>
+        <div id="message" class="reader-info"></div>
+        <button type="submit" class="btn-primary">Register</button>
+    </form>
+</div>
+<div class="additional-info" style="display:none;">
+    <p>Your personal information is collected solely for the purpose of tournament organization and communication. All data will be securely stored and deleted within 30 days after the tournament's conclusion.</p>
+    <p>For your convenience, secure online payment options are available. Follow the provided checkout link to pay by card, or choose to pay in person at our store by cash.</p>
+    <p><strong>Ticket Purchase Policy:</strong> Tickets are non-refundable. If you cannot attend the registered tournament, your ticket will be valid for the next event in the series. Should you miss all events, collect your boosters the following business day at our store.</p>
+</div>
+
+<div id="loadingOverlay" class="loading-overlay" style="display:none;">
+    <div class="loading-message">Please wait...</div>
+</div>
+
+<script>
+    function handleTournamentChange(selectElement) {
+        changeBackground(selectElement);
+        updateMessage(selectElement);
+    }
+
+    function updateMessage(selectElement) {
+        const messageDiv = document.getElementById('message');
+        const selectedOption = selectElement.options[selectElement.selectedIndex];
+        const readerInfo = selectedOption.dataset.readerInfo;
+        
+        // Set dark grey background color
+        messageDiv.style.backgroundColor = '#333'; // Dark grey background
+        messageDiv.style.color = '#fff'; // White text color for better contrast
+        messageDiv.style.fontSize = '0.875rem'; // Reduced font size
+        messageDiv.style.lineHeight = '1.2'; // Reduced line height
+        messageDiv.style.height = '20vh'; // Set height to 20% of the viewport height
+        messageDiv.style.overflowY = 'auto'; // Enable vertical scrolling for overflow content
+        messageDiv.style.margin = '5% 0';
+
+        // Convert text into HTML paragraphs
+        if (readerInfo) {
+            const paragraphs = readerInfo.split('\n').map(line => `<p>${line.trim()}</p>`).join('');
+            messageDiv.innerHTML = paragraphs;
+        } else {
+            messageDiv.innerHTML = '';
+        }
+    }
+
+    function loadStylesheet(cssContent) {
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = cssContent;
+        document.head.appendChild(style);
+        document.documentElement.classList.add('loaded'); // Add class to overwrite initial styles
+    }
+https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec
+    function loadAppropriateStylesheet() {
+        // Replace this with a fetch call to your backend to get CSS content
+        fetch('https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/execgetCssContent')
+            .then(response => response.json())
+            .then(cssContents => {
+                var width = window.innerWidth;
+                if (width >= 769) {
+                    loadStylesheet(cssContents.desktop);
+                } else if (width >= 481) {
+                    loadStylesheet(cssContents.tablet);
+                } else {
+                    loadStylesheet(cssContents.mobile);
+                }
+                document.getElementById('initialLoadingScreen').style.display = 'none';
+                document.querySelector('.container').style.display = 'block';
+                document.querySelector('.additional-info').style.display = 'block';
+            });
+    }
+
+    function loadTournaments() {
+        // Replace this with a fetch call to your backend to get tournament data
+        fetch('https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec/getActiveTournaments')
+            .then(response => response.json())
+            .then(tournaments => {
+                const tournamentSelect = document.getElementById('tournamentSelect');
+                
+                // Add the default "Pick a tournament" option
+                const defaultOption = new Option("Pick a tournament", "");
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                tournamentSelect.add(defaultOption);
+
+                // Add the actual tournament options
+                tournaments.forEach(tournament => {
+                    const option = new Option(`${tournament.name} - €${tournament.price}`, tournament.id);
+                    option.dataset.posterUrl = tournament.posterUrl; // Assuming each tournament has a poster URL
+                    option.dataset.readerInfo = tournament.readerInfo;
+                    tournamentSelect.add(option);
+                });
+                
+                document.getElementById('loadingOverlay').style.display = 'none'; // Hide the overlay
+            });
+    }
+
+    function changeBackground(select) {
+        const url = select.options[select.selectedIndex].dataset.posterUrl;
+        document.body.style.backgroundImage = `url('${url}')`;
+    }
+
+    document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Retrieve form data
+        var name = document.getElementById('nameInput').value;
+        var email = document.getElementById('emailInput').value;
+        var tournamentSelect = document.getElementById('tournamentSelect');
+        var eventId = tournamentSelect.options[tournamentSelect.selectedIndex].value;
+        var selectedOption = tournamentSelect.options[tournamentSelect.selectedIndex];
+        var posterUrl = selectedOption.getAttribute("data-poster-url");
+        var loadingOverlay = document.getElementById('loadingOverlay');
+        loadingOverlay.style.display = 'flex'; // Show the overlay
+
+        // Replace this with a fetch call to your backend to process registration
+        fetch('https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec/processRegistration', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                eventId: eventId,
+                name: name,
+                email: email
+            })
+        })
+            .then(response => response.json())
+            .then(result => {
+                var checkoutUrl = result.checkoutUrl; // Assuming result contains checkoutUrl
+                var organizerMessage = result.message.replace(/\n/g, '<br>');
+                loadingOverlay.style.display = 'none';
+
+                var confirmationMessage = checkoutUrl ? 
+                    'Your registration is confirmed. Please proceed to checkout. If you cannot pay via PayPal, you can pay at the store. Please note that your place is only confirmed once payment is received.' : 
+                    'Your registration is confirmed and no payment is required. Enjoy the event!';
+
+                var checkoutButton = checkoutUrl ? 
+                    `<a href="${checkoutUrl}" class="btn btn-primary" style="margin-bottom: 20px; display: block;" target="_blank">Proceed to Checkout</a>` : 
+                    '';
+
+                // Create and show a popup with the new message and button classes
+                var popup = document.createElement('div');
+                popup.id = 'confirmationPopup';
+                popup.innerHTML = `
+                    <div style="background-color: #121212; padding: 20px; border-radius: 10px; color: #fff; text-align: center; max-width: 80%; margin: 20px auto; max-height: 40vh; overflow-y: auto;">
+                        <h2>Registration Confirmed</h2>
+                        <p style="margin-bottom: 20px;">${confirmationMessage}</p>
+                        <div style="background-color: #2c2c2c; padding: 10px; text-align: left; border-radius: 5px; margin-bottom: 20px;">
+                            <strong>Message from the organizer:</strong><br>${organizerMessage}
+                        </div>
+                        ${checkoutButton}
+                        <button onclick="document.getElementById('confirmationPopup').remove()" class="btn btn-primary" style="margin-top: 10px;">Close</button>
+                    </div>
+                `;
+                popup.style.position = 'fixed';
+                popup.style.left = '50%';
+                popup.style.top = '50%';
+                popup.style.transform = 'translate(-50%, -50%)';
+                popup.style.zIndex = '1000'; // Ensure it's above other content
+
+                document.body.appendChild(popup);
+            })
+            .catch(error => {
+                console.error("Error processing registration: " + error);
+                loadingOverlay.style.display = 'none'; // Optionally, hide overlay on error
+            });
+    });
+
+    function initialize() {
+        document.getElementById('loadingOverlay').style.display = 'flex'; // Show the overlay
+        loadAppropriateStylesheet();
+        loadTournaments();
+    }
+
+    window.onload = initialize;
+</script>
+</body>
+</html>
