@@ -121,49 +121,55 @@
   }
 
   function loadAppropriateStylesheet() {
-    const script = document.createElement('script');
-    script.src = 'https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec?action=getCssContent&callback=handleCssContent';
-    document.body.appendChild(script);
-  }
-
-  function handleCssContent(cssContents) {
-    const width = window.innerWidth;
-    if (width >= 769) {
-      loadStylesheet(cssContents.desktop);
-    } else if (width >= 481) {
-      loadStylesheet(cssContents.tablet);
-    } else {
-      loadStylesheet(cssContents.mobile);
-    }
-    document.getElementById('initialLoadingScreen').style.display = 'none';
-    document.querySelector('.container').style.display = 'block';
-    document.querySelector('.additional-info').style.display = 'block';
+    fetch('https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec?action=getCssContent', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(cssContents => {
+      const width = window.innerWidth;
+      if (width >= 769) {
+        loadStylesheet(cssContents.desktop);
+      } else if (width >= 481) {
+        loadStylesheet(cssContents.tablet);
+      } else {
+        loadStylesheet(cssContents.mobile);
+      }
+      document.getElementById('initialLoadingScreen').style.display = 'none';
+      document.querySelector('.container').style.display = 'block';
+      document.querySelector('.additional-info').style.display = 'block';
+    });
   }
 
   function loadTournaments() {
-    const script = document.createElement('script');
-    script.src = 'https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec?action=getActiveTournaments&callback=handleTournaments';
-    document.body.appendChild(script);
-  }
+    fetch('https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec?action=getActiveTournaments', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(tournaments => {
+      const tournamentSelect = document.getElementById('tournamentSelect');
+      
+      // Add the default "Pick a tournament" option
+      const defaultOption = new Option("Pick a tournament", "");
+      defaultOption.disabled = true;
+      defaultOption.selected = true;
+      tournamentSelect.add(defaultOption);
 
-  function handleTournaments(tournaments) {
-    const tournamentSelect = document.getElementById('tournamentSelect');
-    
-    // Add the default "Pick a tournament" option
-    const defaultOption = new Option("Pick a tournament", "");
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
-    tournamentSelect.add(defaultOption);
-
-    // Add the actual tournament options
-    tournaments.forEach(tournament => {
-      const option = new Option(`${tournament.name} - €${tournament.price}`, tournament.id);
-      option.dataset.posterUrl = tournament.posterUrl; // Assuming each tournament has a poster URL
-      option.dataset.readerInfo = tournament.readerInfo;
-      tournamentSelect.add(option);
+      // Add the actual tournament options
+      tournaments.forEach(tournament => {
+        const option = new Option(`${tournament.name} - €${tournament.price}`, tournament.id);
+        option.dataset.posterUrl = tournament.posterUrl; // Assuming each tournament has a poster URL
+        option.dataset.readerInfo = tournament.readerInfo;
+        tournamentSelect.add(option);
+      });
+      
+      document.getElementById('loadingOverlay').style.display = 'none'; // Hide the overlay
     });
-    
-    document.getElementById('loadingOverlay').style.display = 'none'; // Hide the overlay
   }
 
   document.getElementById('registrationForm').addEventListener('submit', function(e) {
@@ -178,54 +184,46 @@
     var loadingOverlay = document.getElementById('loadingOverlay');
     loadingOverlay.style.display = 'flex'; // Show the overlay
 
-    const script = document.createElement('script');
-    script.src = `https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec?eventId=${eventId}&name=${name}&email=${email}&callback=handleRegistration`;
-    document.body.appendChild(script);
-  });
+    fetch('https://script.google.com/macros/s/AKfycbyCRDraoa5me028cYiG2bw5LR0dG7EjMazo0Gr6FLS8j2da7Oll6dh0saH4irytS_am/exec', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        eventId: eventId,
+        name: name,
+        email: email
+      })
+    })
+    .then(response => response.json())
+    .then(result => {
+      const checkoutUrl = result.checkoutUrl;
+      const organizerMessage = result.message.replace(/\n/g, '<br>');
+      loadingOverlay.style.display = 'none';
 
-  function handleRegistration(result) {
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    const checkoutUrl = result.checkoutUrl;
-    const organizerMessage = result.message.replace(/\n/g, '<br>');
-    loadingOverlay.style.display = 'none';
+      const confirmationMessage = checkoutUrl ? 
+        'Your registration is confirmed. Please proceed to checkout. If you cannot pay via PayPal, you can pay at the store. Please note that your place is only confirmed once payment is received.' : 
+        'Your registration is confirmed and no payment is required. Enjoy the event!';
 
-    const confirmationMessage = checkoutUrl ? 
-      'Your registration is confirmed. Please proceed to checkout. If you cannot pay via PayPal, you can pay at the store. Please note that your place is only confirmed once payment is received.' : 
-      'Your registration is confirmed and no payment is required. Enjoy the event!';
+      const checkoutButton = checkoutUrl ? 
+        `<a href="${checkoutUrl}" class="btn btn-primary" style="margin-bottom: 20px; display: block;" target="_blank">Proceed to Checkout</a>` : 
+        '';
 
-    const checkoutButton = checkoutUrl ? 
-      `<a href="${checkoutUrl}" class="btn btn-primary" style="margin-bottom: 20px; display: block;" target="_blank">Proceed to Checkout</a>` : 
-      '';
-
-    const popup = document.createElement('div');
-    popup.id = 'confirmationPopup';
-    popup.innerHTML = `
-      <div style="background-color: #121212; padding: 20px; border-radius: 10px; color: #fff; text-align: center; max-width: 80%; margin: 20px auto; max-height: 40vh; overflow-y: auto;">
-        <h2>Registration Confirmed</h2>
-        <p style="margin-bottom: 20px;">${confirmationMessage}</p>
-        <div style="background-color: #2c2c2c; padding: 10px; text-align: left; border-radius: 5px; margin-bottom: 20px;">
-          <strong>Message from the organizer:</strong><br>${organizerMessage}
+      const popup = document.createElement('div');
+      popup.id = 'confirmationPopup';
+      popup.innerHTML = `
+        <div style="background-color: #121212; padding: 20px; border-radius: 10px; color: #fff; text-align: center; max-width: 80%; margin: 20px auto; max-height: 40vh; overflow-y: auto;">
+          <h2>Registration Confirmed</h2>
+          <p style="margin-bottom: 20px;">${confirmationMessage}</p>
+          <div style="background-color: #2c2c2c; padding: 10px; text-align: left; border-radius: 5px; margin-bottom: 20px;">
+            <strong>Message from the organizer:</strong><br>${organizerMessage}
+          </div>
+          ${checkoutButton}
+          <button onclick="document.getElementById('confirmationPopup').remove()" class="btn btn-primary" style="margin-top: 10px;">Close</button>
         </div>
-        ${checkoutButton}
-        <button onclick="document.getElementById('confirmationPopup').remove()" class="btn btn-primary" style="margin-top: 10px;">Close</button>
-      </div>
-    `;
-    popup.style.position = 'fixed';
-    popup.style.left = '50%';
-    popup.style.top = '50%';
-    popup.style.transform = 'translate(-50%, -50%)';
-    popup.style.zIndex = '1000'; // Ensure it's above other content
-
-    document.body.appendChild(popup);
-  }
-
-  function initialize() {
-    document.getElementById('loadingOverlay').style.display = 'flex'; // Show the overlay
-    loadAppropriateStylesheet();
-    loadTournaments();
-  }
-
-  window.onload = initialize;
-</script>
-</body>
-</html>
+      `;
+      popup.style.position = 'fixed';
+      popup.style.left = '50%';
+      popup.style.top = '50%';
+      popup.style.transform = 'translate(-50%, -50%)';
+      popup.style.zIndex
